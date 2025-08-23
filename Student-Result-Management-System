@@ -1,0 +1,162 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+class Student {
+public:
+    int roll;
+    string name;
+    vector<int> marks;
+    float percentage;
+    char grade;
+
+    Student(int r, string n, vector<int> m) {
+        roll = r;
+        name = n;
+        marks = m;
+        calculatePercentage();
+        calculateGrade();
+    }
+
+    void calculatePercentage() {
+        int total = 0;
+        for (int mark : marks) total += mark;
+        percentage = (float)total / marks.size();
+    }
+
+    void calculateGrade() {
+        if (percentage >= 90) grade = 'A';
+        else if (percentage >= 75) grade = 'B';
+        else if (percentage >= 60) grade = 'C';
+        else if (percentage >= 50) grade = 'D';
+        else grade = 'F';
+    }
+
+    void display() {
+        cout << "Roll: " << roll << " | Name: " << name
+             << " | %: " << percentage
+             << " | Grade: " << grade << endl;
+    }
+};
+
+// Global database
+vector<Student> students;
+
+// Function to add student
+void addStudent() {
+    int roll, n;
+    string name;
+    cout << "Enter Roll No: ";
+    cin >> roll;
+    cout << "Enter Name: ";
+    cin.ignore();
+    getline(cin, name);
+    cout << "Enter number of subjects: ";
+    cin >> n;
+
+    vector<int> marks(n);
+    cout << "Enter marks: ";
+    for (int i = 0; i < n; i++) cin >> marks[i];
+
+    students.push_back(Student(roll, name, marks));
+    cout << "Student Added Successfully!\n";
+}
+
+// Function to display all students
+void displayAll() {
+    if (students.empty()) {
+        cout << "No records found!\n";
+        return;
+    }
+    for (auto &s : students) s.display();
+}
+
+// Function to search by roll number
+void searchStudent() {
+    int r;
+    cout << "Enter Roll No to search: ";
+    cin >> r;
+    for (auto &s : students) {
+        if (s.roll == r) {
+            s.display();
+            return;
+        }
+    }
+    cout << "Student not found!\n";
+}
+
+// Function to sort by percentage
+void sortByPercentage() {
+    sort(students.begin(), students.end(), [](Student &a, Student &b) {
+        return a.percentage > b.percentage;
+    });
+    cout << "Sorted by percentage!\n";
+}
+
+// Function to save to file
+void saveToFile() {
+    ofstream fout("students.txt");
+    for (auto &s : students) {
+        fout << s.roll << "," << s.name << "," << s.percentage << "," << s.grade << endl;
+    }
+    fout.close();
+    cout << "Data saved to file!\n";
+}
+
+// Function to load from file
+void loadFromFile() {
+    ifstream fin("students.txt");
+    if (!fin) {
+        cout << "No saved data found!\n";
+        return;
+    }
+    students.clear();
+    int roll;
+    string name;
+    float per;
+    char grade;
+    string line;
+
+    while (getline(fin, line)) {
+        stringstream ss(line);
+        string token;
+        vector<string> tokens;
+        while (getline(ss, token, ',')) tokens.push_back(token);
+
+        if (tokens.size() == 4) {
+            roll = stoi(tokens[0]);
+            name = tokens[1];
+            per = stof(tokens[2]);
+            grade = tokens[3][0];
+
+            // dummy marks (not stored in file, but still added)
+            vector<int> m = {0, 0, 0};
+            Student st(roll, name, m);
+            st.percentage = per;
+            st.grade = grade;
+            students.push_back(st);
+        }
+    }
+    fin.close();
+    cout << "Data loaded from file!\n";
+}
+
+int main() {
+    int choice;
+    do {
+        cout << "\n---- Student Result Management ----\n";
+        cout << "1. Add Student\n2. Display All\n3. Search by Roll\n4. Sort by %\n5. Save to File\n6. Load from File\n0. Exit\n";
+        cout << "Enter choice: ";
+        cin >> choice;
+        switch (choice) {
+            case 1: addStudent(); break;
+            case 2: displayAll(); break;
+            case 3: searchStudent(); break;
+            case 4: sortByPercentage(); break;
+            case 5: saveToFile(); break;
+            case 6: loadFromFile(); break;
+            case 0: cout << "Exiting...\n"; break;
+            default: cout << "Invalid choice!\n";
+        }
+    } while (choice != 0);
+    return 0;
+}
